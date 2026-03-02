@@ -16,7 +16,8 @@ on:
 jobs:
   run-automation:
     runs-on: ubuntu-22.04
-    container: mcr.microsoft.com/playwright:v1.42.0-focal  # prebuilt container with all dependencies
+    # Switched to the python-specific playwright image
+    container: ://mcr.microsoft.com
 
     env:
       EMAIL: ${{ secrets.EMAIL }}
@@ -26,18 +27,20 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Upgrade pip & install Python dependencies
+      - name: Install Python dependencies
         run: |
           python3 -m pip install --upgrade pip
           python3 -m pip install -r requirements.txt
 
-      - name: Install Playwright browsers
+      - name: Install Playwright Browsers
         run: |
-          python3 -m playwright install
+          # The image has playwright, but you still need to fetch browser binaries
+          python3 -m playwright install chromium --with-deps
 
       - name: Run Automation Script
         run: |
-          export PROPOSAL_ID=${{ github.event.inputs.proposal_id }}
-          export PAGE_ID=${{ github.event.inputs.page_id }}
-          export CALLBACK_URL=${{ github.event.inputs.callback_url }}
           python3 main.py
+        env:
+          PROPOSAL_ID: ${{ github.event.inputs.proposal_id }}
+          PAGE_ID: ${{ github.event.inputs.page_id }}
+          CALLBACK_URL: ${{ github.event.inputs.callback_url }}

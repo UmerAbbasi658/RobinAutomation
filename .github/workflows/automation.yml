@@ -1,0 +1,42 @@
+name: Run Robin Automation
+
+on:
+  workflow_dispatch:
+    inputs:
+      proposal_id:
+        description: "Proposal ID"
+        required: true
+      page_id:
+        description: "Page ID"
+        required: true
+      callback_url:
+        description: "Zapier webhook URL"
+        required: true
+
+jobs:
+  run-automation:
+    runs-on: ubuntu-latest
+
+    env:
+      EMAIL: ${{ secrets.EMAIL }}
+      PASSWORD: ${{ secrets.PASSWORD }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          playwright install --with-deps
+
+      - name: Run Automation Script
+        run: |
+          python main.py "${{ github.event.inputs.proposal_id }}" \
+                         "${{ github.event.inputs.page_id }}" \
+                         "${{ github.event.inputs.callback_url }}"

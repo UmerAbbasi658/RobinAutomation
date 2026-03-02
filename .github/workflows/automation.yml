@@ -21,10 +21,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Install pip
+      - name: Ensure pip is installed
         run: |
-          sudo apt update
-          sudo apt install -y python3-pip
+          python3 -m ensurepip --upgrade
 
       - name: Upgrade pip & install dependencies
         run: |
@@ -33,7 +32,6 @@ jobs:
 
       - name: Install Playwright browsers
         run: |
-          python3 -m pip install playwright
           python3 -m playwright install
 
       - name: Run Robin Automation

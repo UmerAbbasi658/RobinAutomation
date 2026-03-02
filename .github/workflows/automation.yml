@@ -11,36 +11,36 @@ on:
         required: true
       callback_url:
         description: "Zapier webhook URL"
-        required: true
+        required: false
 
 jobs:
   run-automation:
     runs-on: ubuntu-22.04
-    # Switched to the python-specific playwright image
+    # The image below is pre-built for Python and fixes the 'pip' error
     container: ://mcr.microsoft.com
 
     env:
       EMAIL: ${{ secrets.EMAIL }}
       PASSWORD: ${{ secrets.PASSWORD }}
+      # Move inputs directly to the job level to avoid shell export issues
+      PROPOSAL_ID: ${{ github.event.inputs.proposal_id }}
+      PAGE_ID: ${{ github.event.inputs.page_id }}
+      CALLBACK_URL: ${{ github.event.inputs.callback_url }}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Install Python dependencies
+      - name: Install dependencies
         run: |
           python3 -m pip install --upgrade pip
           python3 -m pip install -r requirements.txt
 
-      - name: Install Playwright Browsers
+      - name: Install Playwright browsers
         run: |
-          # The image has playwright, but you still need to fetch browser binaries
+          # Only installs chromium to save time/space
           python3 -m playwright install chromium --with-deps
 
       - name: Run Automation Script
         run: |
           python3 main.py
-        env:
-          PROPOSAL_ID: ${{ github.event.inputs.proposal_id }}
-          PAGE_ID: ${{ github.event.inputs.page_id }}
-          CALLBACK_URL: ${{ github.event.inputs.callback_url }}

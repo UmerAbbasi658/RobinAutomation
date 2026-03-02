@@ -15,8 +15,7 @@ on:
 
 jobs:
   run-automation:
-    runs-on: ubuntu-22.04
-    container: mcr.microsoft.com/playwright:v1.42.0-focal
+    runs-on: ubuntu-latest
 
     env:
       EMAIL: ${{ secrets.EMAIL }}
@@ -24,21 +23,20 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Upgrade pip & install dependencies
-        run: |
-          python3 -m ensurepip --upgrade
-          python3 -m pip install --upgrade pip
-          python3 -m pip install -r requirements.txt
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
 
-      - name: Install Playwright browsers
+      - name: Install dependencies
         run: |
-          python3 -m playwright install
+          pip install -r requirements.txt
+          playwright install --with-deps
 
       - name: Run Automation Script
         run: |
-          export PROPOSAL_ID=${{ github.event.inputs.proposal_id }}
-          export PAGE_ID=${{ github.event.inputs.page_id }}
-          export CALLBACK_URL=${{ github.event.inputs.callback_url }}
-          python3 main.py
+          python main.py "${{ github.event.inputs.proposal_id }}" \
+                         "${{ github.event.inputs.page_id }}" \
+                         "${{ github.event.inputs.callback_url }}"

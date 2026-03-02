@@ -1,43 +1,35 @@
 name: Run Robin Automation
 
 on:
-  workflow_dispatch:
-    inputs:
-      proposal_id:
-        description: "Proposal ID"
-        required: true
-      page_id:
-        description: "Page ID"
-        required: true
-      callback_url:
-        description: "Zapier webhook URL"
-        required: true
+  workflow_dispatch: # Manual trigger
+  repository_dispatch: # Optional: external API trigger
+    types: [zapier-trigger] 
 
 jobs:
   run-automation:
     runs-on: ubuntu-latest
-    container: mcr.microsoft.com/playwright/python:1.42.0-focal  # prebuilt container with Python, pip, Playwright
-
-    env:
-      EMAIL: ${{ secrets.EMAIL }}
-      PASSWORD: ${{ secrets.PASSWORD }}
+    environment: robin_automation  # GitHub environment with secrets
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Install Python dependencies
-        run: |
-          python3 -m pip install --upgrade pip
-          python3 -m pip install -r requirements.txt
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
 
-      - name: Install Playwright browsers
+      - name: Install dependencies
         run: |
-          python3 -m playwright install
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          playwright install chromium
 
-      - name: Run Automation Script
-        run: |
-          export PROPOSAL_ID="${{ github.event.inputs.proposal_id }}"
-          export PAGE_ID="${{ github.event.inputs.page_id }}"
-          export CALLBACK_URL="${{ github.event.inputs.callback_url }}"
-          python3 main.py
+      - name: Run automation script
+        env:
+          EMAIL: ${{ secrets.EMAIL }}
+          PASSWORD: ${{ secrets.PASSWORD }}
+          PROPOSAL_ID: ${{ github.event.inputs.proposal_id }}
+          PAGE_ID: ${{ github.event.inputs.page_id }}
+          CALLBACK_URL: ${{ github.event.inputs.callback_url }}
+        run: python main.py

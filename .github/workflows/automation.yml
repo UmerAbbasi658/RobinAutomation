@@ -4,29 +4,31 @@ on:
   workflow_dispatch:
     inputs:
       proposal_id:
-        description: 'Proposal ID'
+        description: "Proposal ID"
         required: true
       page_id:
-        description: 'Page ID'
+        description: "Page ID"
         required: true
       callback_url:
-        description: 'Webhook URL'
+        description: "Zapier webhook URL"
         required: true
 
 jobs:
-  automation:
+  run-automation:
     runs-on: ubuntu-22.04
     container: mcr.microsoft.com/playwright:v1.42.0-focal
+
+    env:
+      EMAIL: ${{ secrets.EMAIL }}
+      PASSWORD: ${{ secrets.PASSWORD }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Ensure pip is installed
-        run: |
-          python3 -m ensurepip --upgrade
-
       - name: Upgrade pip & install dependencies
         run: |
+          python3 -m ensurepip --upgrade
           python3 -m pip install --upgrade pip
           python3 -m pip install -r requirements.txt
 
@@ -34,10 +36,7 @@ jobs:
         run: |
           python3 -m playwright install
 
-      - name: Run Robin Automation
-        env:
-          EMAIL: ${{ secrets.EMAIL }}
-          PASSWORD: ${{ secrets.PASSWORD }}
+      - name: Run Automation Script
         run: |
           export PROPOSAL_ID=${{ github.event.inputs.proposal_id }}
           export PAGE_ID=${{ github.event.inputs.page_id }}

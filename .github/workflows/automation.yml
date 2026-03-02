@@ -1,6 +1,5 @@
 name: Run Robin Automation
 
-# Trigger manually in GitHub Actions
 on:
   workflow_dispatch:
     inputs:
@@ -16,9 +15,8 @@ on:
 
 jobs:
   run-automation:
-    # Use prebuilt Playwright container with all dependencies
     runs-on: ubuntu-latest
-    container: mcr.microsoft.com/playwright:v1.42.0-focal
+    container: mcr.microsoft.com/playwright/python:1.42.0-focal  # prebuilt container with Python, pip, Playwright
 
     env:
       EMAIL: ${{ secrets.EMAIL }}
@@ -26,9 +24,9 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
-      - name: Upgrade pip & install Python dependencies
+      - name: Install Python dependencies
         run: |
           python3 -m pip install --upgrade pip
           python3 -m pip install -r requirements.txt
@@ -37,11 +35,9 @@ jobs:
         run: |
           python3 -m playwright install
 
-      - name: Run Robin Automation
+      - name: Run Automation Script
         run: |
-          # Set inputs as environment variables for main.py
           export PROPOSAL_ID="${{ github.event.inputs.proposal_id }}"
           export PAGE_ID="${{ github.event.inputs.page_id }}"
           export CALLBACK_URL="${{ github.event.inputs.callback_url }}"
-
           python3 main.py

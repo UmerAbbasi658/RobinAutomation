@@ -15,7 +15,8 @@ on:
 
 jobs:
   run-automation:
-    runs-on: ubuntu-latest  # normal Ubuntu runner
+    runs-on: ubuntu-latest
+    container: mcr.microsoft.com/playwright:v1.42.0-focal  # container already has browsers & deps
 
     env:
       EMAIL: ${{ secrets.EMAIL }}
@@ -25,49 +26,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            libnss3 \
-            libatk1.0-0 \
-            libatk-bridge2.0-0 \
-            libcups2 \
-            libdrm2 \
-            libxkbcommon0 \
-            libxcomposite1 \
-            libxdamage1 \
-            libxrandr2 \
-            libgbm1 \
-            libasound2 \
-            libpangocairo-1.0-0 \
-            libpango-1.0-0 \
-            libffi-dev \
-            libx264-163 \
-            wget \
-            curl \
-            unzip \
-            xvfb \
-            fonts-liberation \
-            libharfbuzz0b \
-            libfribidi0 \
-            ca-certificates \
-            lsb-release \
-            git
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
       - name: Upgrade pip & install Python dependencies
         run: |
           python3 -m pip install --upgrade pip
           python3 -m pip install -r requirements.txt
-
-      - name: Install Playwright browsers
-        run: |
-          python3 -m playwright install
 
       - name: Run Automation Script
         run: |
